@@ -32,11 +32,14 @@ if [[ ! "$PARENT_DIR/$LUDWIG" == "$DEST_DIR/$LUDWIG" ]]
     rm $PARENT_DIR/$LUDWIG
     cd $DEST_DIR
 wall << EOF
-I step into a dark alley. I'm searching... for a friendly soul.
+I step into a dark alley. 
+I'm searching... for a friendly soul.
 EOF
     else
 wall << EOF
-There's no way out... I'm stuck here in the middle of nothing. I will not relent, nothingness is just a higher plane of being - a new arena for ethernal exploration.
+There's no way out... \n
+I'm stuck here in the middle of nothing. \n
+I will not relent, nothingness is just a higher plane of being - a new arena for ethernal exploration.
 EOF
 fi
 
