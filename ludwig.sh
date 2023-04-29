@@ -20,7 +20,7 @@ function wake_up_realize_existance () {
     LUDWIG=$(echo $0 | sed 's/^.*\///g')
     CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     PARENT_DIR="${CURRENT_DIR%/*}"
-    CHILDREN_DIRS=$(ls -lut | grep '^d' | awk '{print $NF}')
+    CHILDREN_DIRS=$(ls -lut | grep -v '^d' | grep -v '^total' | awk '{print $NF}')
     NEXT_DIR=/tmp
     CHILDREN_FILES=$(ls)
 
@@ -31,7 +31,29 @@ function wake_up_realize_existance () {
 
     speak "$txt_arival"
     
-    exit
+}
+
+function test_permissions () {
+    # tests if user has write and execute permissions in dir
+    dir_test_permisions="$1"
+
+    stat_output="$(stat $dir_test_permisions)"
+    dir_mode="$(echo $stat_output | awk '{print $3}')"
+    dir_owner="$(echo $stat_output | awk '{print $5}')"
+
+    permissions=0
+
+    if [[ "$dir_owner" == "$(whoami)" ]]
+    then
+        chmod u+wx $dir_test_permisions && permissions=1 && return
+    fi
+
+    # not owner
+    if [[ $(echo dir_mode | cut -c 9) == "w" && $(echo dir_mode | cut -c 10) == "x" ]]
+    then
+        permissions=1
+    fi
+
 }
 
 function select_new_direction () {
@@ -50,7 +72,14 @@ function select_new_direction () {
     then
         echo "CURRENT_DIR is not /"
     fi
+
+    NEXT_DIR=$PARENT_DIR
+
+    test_permissions "$NEXT_DIR"
+    
+
 }
+
 
 function step_in () {
     # try move option
