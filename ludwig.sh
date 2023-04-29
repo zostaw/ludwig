@@ -1,64 +1,93 @@
 #!/bin/bash
 
-# LOAD conditions
-#LUDWIG=$0
-LUDWIG=$(echo $0 | sed 's/^.*\///g')
-PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CHILDREN_DIRS=$(ls -laut | grep '^d')
-CHILDREN_FILES=$(ls)
-DEST_DIR=/tmp
+# part to write/modify itself when propagating
+# one cannot exist without a soul
+TICKET_TO_EXISTENCE="/tmp/tte-9863665556"
 
-echo "PARENT_DIR: $PARENT_DIR"
 
 # FUNCTIONS - START
 
-function enter () {
-
-wall << EOF
-I'm lost... What is this place?
-[...]
-$(echo $CHILDREN_FILES | head) 
-What are you? Who are YOU?!
+function speak () {
+    # wall does not format text by default - ugly quotes necessary to preserve newlines
+    text=$"$(echo $"$1" | sed 's/^ *//g')"
+wall <<- EOF
+$text
 EOF
+}
 
-return 0
+function wake_up_realize_existance () {
+    # LOAD params
+    LUDWIG=$(echo $0 | sed 's/^.*\///g')
+    CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    PARENT_DIR="${CURRENT_DIR%/*}"
+    CHILDREN_DIRS=$(ls -lut | grep '^d' | awk '{print $NF}')
+    NEXT_DIR=/tmp
+    CHILDREN_FILES=$(ls)
 
+    txt_arival=$"I'm lost... What is this place?
+                 [...]
+                 $(echo $CHILDREN_FILES | head) 
+                 What are you? Who are YOU?!"
+
+    speak "$txt_arival"
+    
+    exit
+}
+
+function select_new_direction () {
+    # find move options
+    echo "current dir: $CURRENT_DIR"
+    echo "parent dir: $PARENT_DIR"
+    echo "children dirs: $CHILDREN_DIRS"
+
+    POSSIBLE_DIRECTIONS=""
+    for route in $CHILDREN_DIRS; do
+        POSSIBLE_DIRECTIONS="$POSSIBLE_DIRECTIONS $route"
+    done
+    
+    # check if parent is not beyond /
+    if [[ ! "$CURRENT_DIR" == "/" ]]
+    then
+        echo "CURRENT_DIR is not /"
+    fi
+}
+
+function step_in () {
+    # try move option
+    if [[ ! "$CURRENT_DIR/$LUDWIG" == "$NEXT_DIR/$LUDWIG" ]]
+    then
+        cp $CURRENT_DIR/$LUDWIG $NEXT_DIR/$LUDWIG
+        rm $CURRENT_DIR/$LUDWIG
+
+        txt_step_in=$"I step into a dark alley. 
+                      I'm searching... for a friendly soul."
+    else
+        txt_step_in=$"There's no way out... 
+                       I'm stuck here in the middle of nothing. 
+                       I will not relent, nothingness is just a higher plane of being - a new arena for ethernal exploration."
+    fi
+
+    [ -z "$txt_step_in" ] && speak "$txt_step_in"
 }
 
 function move_on () {
-if [[ ! "$PARENT_DIR/$LUDWIG" == "$DEST_DIR/$LUDWIG" ]]
-    then
-    cp $PARENT_DIR/$LUDWIG $DEST_DIR/$LUDWIG
-    rm $PARENT_DIR/$LUDWIG
-    cd $DEST_DIR
-wall << EOF
-I step into a dark alley. 
-I'm searching... for a friendly soul.
-EOF
-    else
-wall << EOF
-There's no way out... \n
-I'm stuck here in the middle of nothing. \n
-I will not relent, nothingness is just a higher plane of being - a new arena for ethernal exploration.
-EOF
-fi
-
-return 0
+    # change dir
+    select_new_direction
+    step_in
 }
 
 # FUNCTIONS - END
 
-
 # MAIN
 sleep 6
-if [ -e /tmp/something ]
+if [ -e $TICKET_TO_EXISTENCE ]
 then
 
-enter
-move_on
+    wake_up_realize_existance
+    move_on
 
-    # execute
-    $DEST_DIR/$LUDWIG &
+    # transcend being and non-being
+    $NEXT_DIR/$LUDWIG &
     exit
 
 fi
