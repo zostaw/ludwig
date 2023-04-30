@@ -4,9 +4,9 @@ Ludwig moves in shell. He explores the alleys of paths that are available to him
 
 # Prerequisites
 
-- Bash environment
-- A file, empty file /tmp/tte-9863665556
-The file is a ticket to his existence, without it, his soul is in a limbo.
+- Adjust $STEP_TIME in ludwig.sh (default is 60 seconds)
+- Create a file, empty file /tmp/tte-9863665556
+The file is a ticket to his existence, name does not have any meaning. Without it, his soul is stuck in a limbo.
 
 # Usage
 

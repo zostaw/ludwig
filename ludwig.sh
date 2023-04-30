@@ -3,6 +3,7 @@
 # part to write/modify itself when propagating - START
 # one cannot exist without a soul
 TICKET_TO_EXISTENCE="/tmp/tte-9863665556"
+STEP_TIME=60
 
 # part to write/modify itself when propagating - END
 
@@ -191,11 +192,11 @@ function debug_var_states() {
 # FUNCTIONS - END
 
 # MAIN
-sleep 60
 if [ -e $TICKET_TO_EXISTENCE ]
 then
 
     wake_up_realize_existance
+    sleep $STEP_TIME
     move_on
     debug_var_states
 
