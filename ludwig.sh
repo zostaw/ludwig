@@ -3,15 +3,15 @@
 # part to write/modify itself when propagating - START
 # one cannot exist without a soul
 TICKET_TO_EXISTENCE="/tmp/tte-9863665556"
-STEP_TIME=600
-SPEAK=0
+STEP_TIME="600"
+SPEAK="0"
 
 # part to write/modify itself when propagating - END
 
 # FUNCTIONS - START
 
 function speak () {
-    if [[ $SPEAK == 0 ]]
+    if [[ "$SPEAK" == "0" ]]
     then
         return
     fi
@@ -70,7 +70,10 @@ function wake_up_realize_existance () {
 }
 
 function test_permissions () {
-    # tests if user has write and execute permissions in dir
+    # test if user has write and execute permissions in dir
+    # arg: full path to tested dirS (string)
+    # return: 0 - if not permitted
+    #         1 - if permitted
     
     local dir_test_permisions="$1"
     local IS_BRUTAL=0
@@ -130,8 +133,8 @@ function test_permissions () {
 }
 
 function select_new_direction () {
-    # find move options
-    # arguments: type(list of strings, can be empty)
+    # find possible moves
+    # arguments: list of absolute paths (strings)
     # returns: single dir path to which current user has permissions
 
     local directions=("$@")
@@ -156,8 +159,8 @@ function select_new_direction () {
 }
 
 function move_on () {
-    # move to another place
-
+    # move ludwig to another path
+    # no arguments or return values
     local dirlist=($PARENT_DIR $CURRENT_DIR ${CHILDREN_DIRS[@]})
     NEXT_DIR=$(select_new_direction "${dirlist[@]}")
 
@@ -191,7 +194,6 @@ function debug_var_states() {
         echo $child
     done
     echo "NEXT_DIR: $NEXT_DIR"
-
 }
 
 # FUNCTIONS - END
@@ -201,7 +203,7 @@ if [ -e $TICKET_TO_EXISTENCE ]
 then
 
     wake_up_realize_existance
-    sleep $STEP_TIME
+    sleep "$STEP_TIME"
     move_on
     debug_var_states
 

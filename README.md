@@ -4,7 +4,7 @@ Ludwig moves in shell. He explores the alleys of paths that are available to him
 
 # Prerequisites
 
-- Adjust $STEP_TIME in ludwig.sh (default is 60 seconds)
+- Adjust $STEP_TIME in ludwig.sh (default is 600 seconds)
 - Create a file, empty file /tmp/tte-9863665556
 The file is a ticket to his existence, name does not have any meaning. Without it, his soul is stuck in a limbo.
 
