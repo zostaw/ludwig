@@ -3,13 +3,18 @@
 # part to write/modify itself when propagating - START
 # one cannot exist without a soul
 TICKET_TO_EXISTENCE="/tmp/tte-9863665556"
-STEP_TIME=60
+STEP_TIME=600
+SPEAK=0
 
 # part to write/modify itself when propagating - END
 
 # FUNCTIONS - START
 
 function speak () {
+    if [[ $SPEAK == 0 ]]
+    then
+        return
+    fi
     # wall does not format text by default - ugly quotes necessary to preserve newlines
     text=$"$(echo $"$1" | sed 's/^ *//g')"
 wall <<- EOF
