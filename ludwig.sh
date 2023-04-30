@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# part to write/modify itself when propagating
+# part to write/modify itself when propagating - START
 # one cannot exist without a soul
 TICKET_TO_EXISTENCE="/tmp/tte-9863665556"
 
+# part to write/modify itself when propagating - END
 
 # FUNCTIONS - START
 
@@ -15,79 +16,150 @@ $text
 EOF
 }
 
+function perl_rand() {
+    # step for shufle function
+    # generates numbers in range and shufles them
+    low_limit=$1
+    high_limit=$2
+
+perl -MList::Util=shuffle -e 'print shuffle(<>);' <<- EOF
+$(seq $low_limit $high_limit)
+EOF
+}
+
+function perl_shuf() {
+    # return random number in range <low_limit;high_limit>
+    low_limit=$1
+    high_limit=$2
+    echo "$(perl_rand "$low_limit" "$high_limit" | head -1)"
+}
+
 function wake_up_realize_existance () {
     # LOAD params
     LUDWIG=$(echo $0 | sed 's/^.*\///g')
     CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     PARENT_DIR="${CURRENT_DIR%/*}"
-    CHILDREN_DIRS=$(ls -lut | grep -v '^d' | grep -v '^total' | awk '{print $NF}')
-    NEXT_DIR=/tmp
-    CHILDREN_FILES=$(ls)
+    # One, who's name is never spoken, but is All-Present
+    if [[ ! -e $CURRENT_DIR ]]
+    then
+        CURRENT_DIR="/"
+    elif [[ ! -e $PARENT_DIR ]]
+    then
+        PARENT_DIR="/"
+    fi
+    cd $CURRENT_DIR
+    # arrays
+    CHILDREN_DIRS=($(ls -lut | grep '^d' | grep -v '^total' | awk '{print $NF}' | sed 's:^:'"$CURRENT_DIR/"':g' | sed 's/\n/ /g'))
+    CHILDREN_FILES=($(ls))
+    # don't leave empty vars
+    NEXT_DIR="$CURRENT_DIR"
 
     txt_arival=$"I'm lost... What is this place?
                  [...]
-                 $(echo $CHILDREN_FILES | head) 
+                 $(echo $CHILDREN_FILES) 
+                 [...]
                  What are you? Who are YOU?!"
 
     speak "$txt_arival"
-    
 }
 
 function test_permissions () {
     # tests if user has write and execute permissions in dir
-    dir_test_permisions="$1"
+    
+    local dir_test_permisions="$1"
+    local IS_BRUTAL=0
 
-    stat_output="$(stat $dir_test_permisions)"
-    dir_mode="$(echo $stat_output | awk '{print $3}')"
-    dir_owner="$(echo $stat_output | awk '{print $5}')"
-
-    permissions=0
-
-    if [[ "$dir_owner" == "$(whoami)" ]]
+    # stop if doesn't exist
+    if [ ! -e $dir_test_permisions ]
     then
-        chmod u+wx $dir_test_permisions && permissions=1 && return
+        echo 0
+        return
+    fi
+
+    # load permissions info
+    local stat_output="$(stat $dir_test_permisions)"
+    local dir_mode="$(echo $stat_output | awk '{print $3}')"
+    local dir_owner="$(echo $stat_output | awk '{print $5}')"
+
+    # root
+    if [[ "$(whoami)" == "root" ]]
+    then
+        if [[ $IS_BRUTAL == 1 ]]
+        then
+            chmod u+wx $dir_test_permisions && echo 1 || echo 0
+        # root only needs x permissions
+        elif [[ "$(echo $dir_mode | cut -c 4)" == "x" || "$(echo $dir_mode | cut -c 10)" == "x" ]]
+        then
+            echo 1
+        else
+            echo 0
+        fi
+        return
+    fi
+
+    # owner 
+    if [[ "$(whoami)" == "$dir_owner" ]]
+    then
+        if [[ $IS_BRUTAL == 1 ]]
+        then
+            chmod u+wx $dir_test_permisions && echo 1 || echo 0
+        elif [[ "$(echo $dir_mode | cut -c 3)" == "w" && "$(echo $dir_mode | cut -c 4)" == "x" ]]
+        then
+            echo 1
+        else
+            echo 0
+        fi
+        return
     fi
 
     # not owner
-    if [[ $(echo dir_mode | cut -c 9) == "w" && $(echo dir_mode | cut -c 10) == "x" ]]
+    if [[ "$(echo $dir_mode | cut -c 9)" == "w" && "$(echo $dir_mode | cut -c 10)" == "x" ]]
     then
-        permissions=1
+        echo 1
+        return
     fi
 
+    echo 0
+    return
 }
 
 function select_new_direction () {
     # find move options
-    echo "current dir: $CURRENT_DIR"
-    echo "parent dir: $PARENT_DIR"
-    echo "children dirs: $CHILDREN_DIRS"
+    # arguments: type(list of strings, can be empty)
+    # returns: single dir path to which current user has permissions
 
-    POSSIBLE_DIRECTIONS=""
-    for route in $CHILDREN_DIRS; do
-        POSSIBLE_DIRECTIONS="$POSSIBLE_DIRECTIONS $route"
+    local directions=("$@")
+    local permissioned_directions=()
+    
+    for direction in "${directions[@]}"
+    do
+        local permission=0
+        permission=$(test_permissions "$direction")
+
+        if [[ "$permission" == "1" ]]
+        then
+            permissioned_directions+=("${direction}")
+        fi
     done
-    
-    # check if parent is not beyond /
-    if [[ ! "$CURRENT_DIR" == "/" ]]
-    then
-        echo "CURRENT_DIR is not /"
-    fi
 
-    NEXT_DIR=$PARENT_DIR
+    chosen_dir_id=$(perl_shuf "0" "$((${#permissioned_directions[@]}-1))")
+    chosen_dir=${permissioned_directions[$chosen_dir_id]}
 
-    test_permissions "$NEXT_DIR"
-    
-
+    echo $chosen_dir
+    return
 }
 
+function move_on () {
+    # move to another place
 
-function step_in () {
-    # try move option
+    local dirlist=($PARENT_DIR $CURRENT_DIR ${CHILDREN_DIRS[@]})
+    NEXT_DIR=$(select_new_direction "${dirlist[@]}")
+
+    # one should never slam the door behind
+    cp $CURRENT_DIR/$LUDWIG $NEXT_DIR/$LUDWIG 2>/dev/null && rm $CURRENT_DIR/$LUDWIG || NEXT_DIR=$CURRENT_DIR
+
     if [[ ! "$CURRENT_DIR/$LUDWIG" == "$NEXT_DIR/$LUDWIG" ]]
     then
-        cp $CURRENT_DIR/$LUDWIG $NEXT_DIR/$LUDWIG
-        rm $CURRENT_DIR/$LUDWIG
-
         txt_step_in=$"I step into a dark alley. 
                       I'm searching... for a friendly soul."
     else
@@ -95,25 +167,37 @@ function step_in () {
                        I'm stuck here in the middle of nothing. 
                        I will not relent, nothingness is just a higher plane of being - a new arena for ethernal exploration."
     fi
-
     [ -z "$txt_step_in" ] && speak "$txt_step_in"
 }
 
-function move_on () {
-    # change dir
-    select_new_direction
-    step_in
+function debug_var_states() {
+    # check state of global variables
+    echo "__________________________________________________________________________________________________________"
+    echo "ludwig: $LUDWIG"
+    echo "parent dir:"$'\n'" $PARENT_DIR"
+    echo "current dir:"$'\n'" $CURRENT_DIR"
+    echo "children dirs:"
+    for child in ${CHILDREN_DIRS[@]}; do
+        echo $child
+    done
+    echo "children files:"
+    for child in ${CHILDREN_FILES[@]}; do
+        echo $child
+    done
+    echo "NEXT_DIR: $NEXT_DIR"
+
 }
 
 # FUNCTIONS - END
 
 # MAIN
-sleep 6
+sleep 60
 if [ -e $TICKET_TO_EXISTENCE ]
 then
 
     wake_up_realize_existance
     move_on
+    debug_var_states
 
     # transcend being and non-being
     $NEXT_DIR/$LUDWIG &
