@@ -28,7 +28,7 @@ function perl_rand() {
     low_limit=$1
     high_limit=$2
 
-perl -MList::Util=shuffle -e 'print shuffle(<>);' <<- EOF
+perl -MList::Util=shuffle -e 'print shuffle(<>);' 2>/dev/null <<- EOF
 $(seq $low_limit $high_limit)
 EOF
 }
@@ -86,9 +86,16 @@ function test_permissions () {
     fi
 
     # load permissions info
-    local stat_output="$(stat $dir_test_permisions)"
-    local dir_mode="$(echo $stat_output | awk '{print $3}')"
-    local dir_owner="$(echo $stat_output | awk '{print $5}')"
+    if [[ $OSTYPE == 'darwin'* ]]
+    then
+        local stat_output="$(stat $dir_test_permisions)"
+        local dir_mode="$(echo $stat_output | awk '{print $3}')"
+        local dir_owner="$(echo $stat_output | awk '{print $5}')"
+    elif [[ $OSTYPE == 'linux'* || $OSTYPE == 'solaris'* ]]
+    then
+        local dir_mode="$(stat -c %A $dir_test_permisions)"
+        local dir_owner="$(stat -c %U $dir_test_permisions)"
+    fi
 
     # root
     if [[ "$(whoami)" == "root" ]]
